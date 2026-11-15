@@ -2,7 +2,7 @@
 
 한국어 AI 말투(슬롭)를 Claude Code 안에서 검사하는 훅 묶음. Claude 가 쓴 답변·파일·커밋에서 아래 같은 문장을 찾아 고치게 함.
 
-![AI가 쓴 글과 고친 글 비교: 회의 정리와 공문에서 걸린 표현 18종이 0건으로](docs/before-after.png)
+![AI가 쓴 글과 고친 글 비교: 맛집 후기·단톡방 공지·자기소개서에서 걸린 표현 15종이 0건으로](docs/before-after.png)
 
 왼쪽 색칠과 건수는 엔진 결과 그대로(`node scripts/before-after.js` 로 다시 만듦, 예문 `docs/before-after.json`). 오른쪽 고친 글은 같은 엔진으로 다시 검사해 0건.
 

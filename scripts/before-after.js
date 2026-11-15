@@ -18,7 +18,7 @@ const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'docs', 'before-after.png');
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const W = 1280;
-const H = 1420;
+const H = 1790;
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const RULE_BY_NAME = new Map([...RULES, ...EXTRA_RULES, ...PUBLIC_RULES, ...FORM_RULES].map((r) => [r[1], r]));
@@ -40,7 +40,9 @@ function spans(text, hits) {
       let e = m.index + m[0].length;
       if (/[가-힣]$/.test(m[0])) while (/[가-힣]/.test(text[e] || '')) e += 1; // 「만전을 기|하겠습니다」처럼 낱말 중간에서 끊기지 않게
       while (e > m.index && /\s/.test(text[e - 1])) e -= 1; // 「상기 」처럼 끝 빈칸은 칠하지 않음
-      out.push({ s: m.index + lead, e, tier: h.tier, name: h.name });
+      let st = m.index + lead;
+      if (/[가-힣]/.test(text[st])) while (st > 0 && /[가-힣]/.test(text[st - 1])) st -= 1; // 「진행|하게 됩니다」처럼 낱말 중간에서 시작하지 않게
+      out.push({ s: st, e, tier: h.tier, name: h.name });
     }
   }
   out.sort((a, b) => a.s - b.s || a.tier - b.tier);
@@ -142,7 +144,7 @@ mark.t2{background:rgba(245,176,0,.22);box-shadow:inset 0 -2px 0 #d49b00}
 <div class="top"><span class="mark">nmsw</span><h1>AI가 쓴 글 → 고친 글</h1><div class="total">걸린 표현<b>${total}종</b>→<b class="g">0</b></div></div>
 <div class="sub">왼쪽 색칠은 nmsw 엔진이 실제로 찾은 곳(🔴 고칠 때까지 막음 · 🟡 알림). 오른쪽은 같은 내용을 고친 글이고, 다시 검사하면 0건.</div>
 ${rows.join('')}
-<div class="foot">예문 docs/before-after.json · 그림 scripts/before-after.js · 날짜·시각 규칙은 「행정업무의 운영 및 혁신에 관한 규정」 제7조 ⑤</div>
+<div class="foot">예문 docs/before-after.json · 그림 scripts/before-after.js</div>
 </body></html>`;
 
 const tmp = path.join(os.tmpdir(), 'nmsw-before-after.html');
