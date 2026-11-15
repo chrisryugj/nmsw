@@ -5,7 +5,8 @@
  *
  *   node scripts/setup.js                 settings.json 에 훅 4개 등록, 옛 윤문 훅 등록 정리
  *   node scripts/setup.js --auto-update   (macOS) 6시간마다 git pull + 다시 등록하는 LaunchAgent 설치
- *   node scripts/setup.js --agents        코덱스·제미나이 전역 지침에 쓰기 전 규칙 블록 넣기(있는 파일만)
+ *   node scripts/setup.js --agents        코덱스·제미나이 전역 지침에 쓰기 전 규칙 블록 넣기(있는 파일만).
+ *                                         한 번 넣은 블록은 이후 기본 실행(자동 갱신 포함)에서 최신으로 맞춤
  *   node scripts/setup.js --check         상태만 보기
  *   node scripts/setup.js --uninstall     등록·LaunchAgent·지침 블록 지우기
  *   --quiet                               바뀐 게 없으면 아무것도 출력하지 않음
@@ -157,10 +158,12 @@ function agentBlock() {
   ].join('\n');
 }
 
-function agents(remove) {
+// onlyIfPresent: 블록이 이미 든 파일만 최신 블록으로 맞춤(자동 갱신이 --agents 없이 돌 때)
+function agents(remove, onlyIfPresent = false) {
   for (const f of [path.join(HOME, '.codex/AGENTS.md'), path.join(HOME, '.gemini/GEMINI.md')]) {
     if (!fs.existsSync(f)) continue;
     const cur = fs.readFileSync(f, 'utf8');
+    if (onlyIfPresent && !cur.includes(START)) continue;
     const re = new RegExp(`\\n*${START}[\\s\\S]*?${END}\\n?`);
     const base = cur.replace(re, '\n').replace(/\n+$/, '\n');
     const next = remove ? base : `${base}\n${agentBlock()}\n`;
@@ -180,5 +183,5 @@ if (args.has('--check')) {
 } else {
   register(false);
   if (args.has('--auto-update')) autoUpdate(false);
-  if (args.has('--agents')) agents(false);
+  agents(false, !args.has('--agents'));
 }
