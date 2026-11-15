@@ -39,6 +39,7 @@ function spans(text, hits) {
       const lead = m[0].length - m[0].trimStart().length; // (?:^|\s) 로 시작하는 규칙의 앞 공백은 칠하지 않음
       let e = m.index + m[0].length;
       if (/[가-힣]$/.test(m[0])) while (/[가-힣]/.test(text[e] || '')) e += 1; // 「만전을 기|하겠습니다」처럼 낱말 중간에서 끊기지 않게
+      while (e > m.index && /\s/.test(text[e - 1])) e -= 1; // 「상기 」처럼 끝 빈칸은 칠하지 않음
       out.push({ s: m.index + lead, e, tier: h.tier, name: h.name });
     }
   }
@@ -58,7 +59,8 @@ function marked(text, sp) {
   let html = '';
   let i = 0;
   for (const x of sp) {
-    html += esc(text.slice(i, x.s)) + `<mark class="t${x.tier}">${esc(text.slice(x.s, x.e))}</mark>`;
+    const short = x.e - x.s <= 14 ? ' nw' : ''; // 짧은 표시는 줄 끝에서 갈라지지 않게(2026-11-|20)
+    html += esc(text.slice(i, x.s)) + `<mark class="t${x.tier}${short}">${esc(text.slice(x.s, x.e))}</mark>`;
     i = x.e;
   }
   return html + esc(text.slice(i));
@@ -127,6 +129,7 @@ body{padding:48px 56px}
 .after p{color:#1c1c1e}
 .before p{color:#3a3a3c}
 mark{border-radius:3px;padding:1px 1px;color:inherit}
+mark.nw{white-space:nowrap}
 mark.t1{background:rgba(229,72,77,.18);box-shadow:inset 0 -2px 0 #e5484d}
 mark.t2{background:rgba(245,176,0,.22);box-shadow:inset 0 -2px 0 #d49b00}
 .card footer{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;padding-top:14px;border-top:1px dashed #e6e3dc}
