@@ -18,7 +18,7 @@ const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'docs', 'before-after.png');
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const W = 1280;
-const H = 1376;
+const H = 1420;
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const RULE_BY_NAME = new Map([...RULES, ...EXTRA_RULES, ...PUBLIC_RULES, ...FORM_RULES].map((r) => [r[1], r]));
