@@ -91,6 +91,12 @@ CASES.push(
   ['오늘 2026-11-15에 배포했다. 오후 2시에 끝났다.', 0, '날짜'],
   ['오늘 2026-11-15에 배포했다. 오후 2시에 끝났다.', 0, '시각'],
 );
+// README 전후 비교 그림의 예문: 고친 글은 0건, AI 글은 🔴 1종 이상이어야 그림 설명이 맞음
+for (const ex of require('../docs/before-after.json')) {
+  ok(check(ex.after, { ext: '.md' }).length === 0, `비교 그림 고친 글 0건: ${ex.label}`);
+  ok(check(ex.before, { ext: '.md' }).some((h) => h.tier === 1), `비교 그림 AI 글 🔴: ${ex.label}`);
+}
+
 for (const [text, want, name, ext = '.md'] of CASES) {
   const hits = check(text, { ext });
   const match = hits.filter((h) => !name || h.name.includes(name));

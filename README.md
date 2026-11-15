@@ -2,6 +2,10 @@
 
 한국어 AI 말투(슬롭)를 Claude Code 안에서 검사하는 훅 묶음. 판정 엔진 하나를 네 시점에서 같이 씀.
 
+![AI가 쓴 글과 고친 글 비교: 블로그 글과 공문에서 걸린 표현 15종이 0건으로](docs/before-after.png)
+
+왼쪽 색칠과 건수는 엔진 결과 그대로(`node scripts/before-after.js` 로 다시 만듦, 예문 `docs/before-after.json`). 오른쪽 고친 글은 같은 엔진으로 다시 검사해 0건.
+
 | 시점 | 훅 | 동작 |
 |---|---|---|
 | 요청 직후 | `hooks/card.js` (UserPromptSubmit) | 규칙 요약과 최근 7일 자주 걸린 표현을 Claude 에게 전달 |
