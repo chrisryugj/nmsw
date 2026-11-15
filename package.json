@@ -2,5 +2,5 @@
   "name": "nmsw",
   "private": true,
   "description": "no more slop words: 한국어 AI 슬롭 말투 게이트 (Claude Code 훅)",
-  "scripts": { "test": "node test/run.js && bash test/hooks.sh" }
+  "scripts": { "test": "node test/run.js && bash test/hooks.sh && node engine/cli.js --red README.md NOTICE.md" }
 }

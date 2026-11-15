@@ -2,7 +2,7 @@
 /**
  * nmsw 엔진: 한국어 AI 슬롭 말투 판정 하나로 쓰기 전 카드·파일 저장·답변·커밋 게이트가 같이 쓴다
  *
- * - 규칙 정본: ./rules.js (RULES + EXTRA_RULES)
+ * - 규칙 정본: ./rules.js (RULES + EXTRA_RULES), ./gongmun.js (공공언어 + 공문·보고서일 때만 날짜·시각 표기)
  * - 어휘 사전: im-not-ai lexicon.json(111개, 정규식·제외 정규식·바꿀 때/둘 때). vendor → 레포 사본 순서
  * - 🔴(1) = 막음, 🟡(2) = 알림
  * - 빼는 것: 코드 울타리·인라인 코드, md·txt 의 따옴표 직접 인용(120자 이하)과 > 인용 줄,
@@ -12,13 +12,26 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { RULES, EXTRA_RULES } = require('./rules');
+const { PUBLIC_RULES, FORM_RULES, isGongmun } = require('./gongmun');
 
-const ALL_RULES = [...RULES, ...EXTRA_RULES];
+const ALL_RULES = [...RULES, ...EXTRA_RULES, ...PUBLIC_RULES];
 const PROSE_EXTS = ['.md', '.mdx', '.txt', '.html', '.htm', '.srt', '.vtt', '.typ'];
 const CODE_EXTS = ['.tsx', '.jsx', '.ts', '.js', '.mjs', '.cjs', '.vue', '.svelte', '.astro', '.py'];
 const BLANK_SPLIT_EXTS = ['.md', '.mdx', '.txt', '.typ'];
 const HTML_EXTS = ['.html', '.htm', '.vue', '.svelte', '.astro'];
-const SKIP_PATH = /[\\/]\.(claude|codex|agents)[\\/]|[\\/](node_modules|dist|build|\.next|out)[\\/]|\.(test|spec)\.|[\\/]tests?[\\/]/;
+// 금지어 목록을 일부러 적는 파일만 뺀다: Claude·코덱스·제미나이 지침과 메모리, 훅·스킬, nmsw 판정 코드.
+// 사람이 읽는 문서(.claude/plans/, nmsw README·NOTICE 등)는 검사한다
+const SKIP_PATH = new RegExp(
+  [
+    String.raw`[\\/]\.claude[\\/](?:hooks|lib|agents|commands|skills|vendor|output-styles|templates|prompts|scripts|backups|plugins|projects|memory|shell-snapshots|todos)[\\/]`,
+    String.raw`[\\/]nmsw[\\/](?:engine|hooks|test|scripts|vendor)[\\/]`,
+    String.raw`[\\/]\.(?:codex|agents|gemini)[\\/]`,
+    String.raw`[\\/](?:CLAUDE|AGENTS|GEMINI)\.md$`,
+    String.raw`[\\/](?:node_modules|dist|build|\.next|out)[\\/]`,
+    String.raw`\.(?:test|spec)\.`,
+    String.raw`[\\/]tests?[\\/]`,
+  ].join('|'),
+);
 const HANGUL = /[가-힣]/;
 // 직접 인용은 판정에서 뺀다(im-not-ai v2.4.1 과 같은 원칙)
 const QUOTES_ALL = /「[^」\n]{0,120}」|『[^』\n]{0,120}』|“[^”\n]{0,120}”|"[^"\n]{0,120}"/g;
@@ -34,7 +47,7 @@ const LEXICON_PATHS = [
 ].filter(Boolean);
 const LEXICON_WINDOW = 12; // im-not-ai lexical_layer.py EXCLUDE_WINDOW 와 같은 규약
 const LEXICON_MAX_LINES = 8;
-// 사람 글(유저 스레드 글)에서 0건이고 AI 글에서 걸린 restore 항목만 🔴 로 올린다. 근거: README 「오탐 실측」
+// 사람 글(저자 스레드 글)에서 0건이고 AI 글에서 걸린 restore 항목만 🔴 로 올린다. 근거: README 「오탐 실측」
 const LEXICON_S1 = new Set(require('./lexicon-s1.json'));
 
 let lexCache;
@@ -151,7 +164,8 @@ function prepare(text, ext) {
     .map((p) => p.split('\n').filter((l) => HANGUL.test(l)).join('\n'))
     .filter(Boolean);
   const sentences = paras.flatMap((p) => p.split(SENTENCE_SPLIT)).filter((s) => HANGUL.test(s));
-  return { paras, sentences, body: paras.join('\n') };
+  // all: 한글 없는 줄도 남긴 글(표지의 「2026.9.22.(화)」 한 줄 같은 날짜 검사용)
+  return { paras, sentences, body: paras.join('\n'), all: t };
 }
 
 function sampleAt(where, index) {
@@ -178,9 +192,9 @@ function countIn(unit, re, exclude) {
   return { n, first };
 }
 
-function checkRules(prep, tiers) {
+function checkRules(prep, tiers, rules = ALL_RULES) {
   const hits = [];
-  for (const [re, name, fix, tier, min = 1, scope, exclude] of ALL_RULES) {
+  for (const [re, name, fix, tier, min = 1, scope, exclude] of rules) {
     if (!tiers.includes(tier)) continue;
     let best = { n: 0, first: -1 };
     let where = prep.body;
@@ -236,6 +250,7 @@ function check(text, opts = {}) {
   const prep = prepare(text, ext);
   if (!prep.paras.length) return [];
   const hits = checkRules(prep, tiers);
+  if (isGongmun(text)) hits.push(...checkRules({ ...prep, body: prep.all }, tiers, FORM_RULES));
   // 사전 장르: 문서 파일은 보고서(비유 낱말 23개는 보고서·논문에서만 검사), 답변·코드 화면 문구는 일반
   const genre = opts.genre || (PROSE_EXTS.includes(ext) ? '보고서' : '일반');
   if (opts.lexicon !== false) hits.push(...checkLexicon(prep, tiers, genre));

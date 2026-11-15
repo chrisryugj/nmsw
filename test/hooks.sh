@@ -57,6 +57,23 @@ run_case "공문 개조식 명사형 종결 → 침묵" file-gate.js \
 run_case "slop-gate: off 표시 → 침묵" file-gate.js \
   '{"tool_name":"Write","tool_input":{"file_path":"/tmp/a.md","content":"<!-- slop-gate: off -->\n획기적 — 예시"}}' EMPTY
 
+run_case "nmsw README 는 검사 → block" file-gate.js \
+  '{"tool_name":"Write","tool_input":{"file_path":"/Users/x/.claude/nmsw/README.md","content":"판정 — 엔진"}}' \
+  'decision":"block'
+run_case "프로젝트 .claude/plans 는 검사 → block" file-gate.js \
+  '{"tool_name":"Write","tool_input":{"file_path":"/Users/x/proj/.claude/plans/a.md","content":"계획 — 초안"}}' \
+  'decision":"block'
+run_case "CLAUDE.md 는 침묵" file-gate.js \
+  '{"tool_name":"Write","tool_input":{"file_path":"/Users/x/.claude/CLAUDE.md","content":"줄표(—) 금지"}}' EMPTY
+run_case "nmsw 규칙 파일은 침묵" file-gate.js \
+  '{"tool_name":"Write","tool_input":{"file_path":"/Users/x/.claude/nmsw/engine/gongmun.js","content":"const A = \"장애우 — 예시\""}}' EMPTY
+run_case "공문 오후 2시 → block" file-gate.js \
+  '{"tool_name":"Write","tool_input":{"file_path":"/tmp/gm.md","content":"수신 수신자 참조\n\n제목 교육 안내\n\n1. 교육은 오후 2시에 시작합니다.\n\n붙임 계획 1부. 끝."}}' \
+  'decision":"block'
+run_case "공문 순화어만 → 알림" file-gate.js \
+  '{"tool_name":"Write","tool_input":{"file_path":"/tmp/gm.md","content":"수신 수신자 참조\n\n제목 자료 제출\n\n1. 자료를 취합하여 2026. 11. 20.(금)까지 제출하여 주시기 바랍니다.\n\n붙임 서식 1부. 끝."}}' \
+  'additionalContext'
+
 echo "── reply-gate (Stop)"
 TR_DIR=$(mktemp -d)
 mk_tr() { # $1=파일 $2=직전 턴 답변 $3=이번 턴 답변

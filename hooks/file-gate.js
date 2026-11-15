@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Korean Slop Gate (PostToolUse:Write|Edit)
- * 새로 쓴 한국어 글에서 유저가 매번 고치던 AI 슬롭 말투를 잡아 되돌려 보낸다
+ * 새로 쓴 한국어 글에서 사람이 매번 고치던 AI 슬롭 말투를 잡아 되돌려 보낸다
  *
  * - 🔴 S1: 확실한 슬롭 → decision:block (Claude가 고쳐서 다시 저장)
  * - 🟡 S2: 문맥 봐야 하는 것 → additionalContext 알림만
@@ -42,7 +42,7 @@ safeRun(() => {
   if (hits.length === 0) return;
   logHits('file', hits, path.basename(filePath));
 
-  const head = `[윤문게이트] ${path.basename(filePath)}: AI 슬롭 말투 ${hits.length}종. 유저 문장 인용·고유명사·법령 원문·글자 그대로 쓰는 뜻이면 두고, 아니면 고쳐서 다시 저장`;
+  const head = `[윤문게이트] ${path.basename(filePath)}: AI 슬롭 말투 ${hits.length}종. 사용자 문장 인용·고유명사·법령 원문·글자 그대로 쓰는 뜻이면 두고, 아니면 고쳐서 다시 저장`;
   const msg = [head, ...formatHits(hits)].join('\n');
 
   if (hits.some((h) => h.tier === 1)) {
