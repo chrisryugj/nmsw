@@ -206,7 +206,7 @@ function checkRules(prep, tiers, rules = ALL_RULES) {
     } else {
       best = countIn(prep.body, re, exclude);
     }
-    // '남발' 규칙은 글이 길면 문턱도 올린다(1,500자마다 1건 허용). 문단·문장 규칙은 그대로
+    // '남발' 규칙은 글이 길면 문턱도 올린다(1,500자마다 1건 허용). 문단·문장 규칙과 'd'(글 전체·문턱 고정)는 그대로
     const need = min > 1 && !scope ? Math.max(min, Math.ceil(prep.body.length / 1500)) : min;
     if (best.n < need) continue;
     const unit = scope === 'p' ? '한 문단 ' : scope === 's' ? '한 문장 ' : '';
